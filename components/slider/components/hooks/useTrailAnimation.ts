@@ -2,6 +2,7 @@ import {
 	SharedValue,
 	useDerivedValue,
 	interpolate,
+	Extrapolation,
 } from "react-native-reanimated";
 import { TRAIL_COUNT, MAX_SLIDE, KNOB_SIZE } from "../../constants";
 
@@ -26,7 +27,7 @@ export const useTrailAnimation = ({
 			[0, 0.25, 1],
 			[
 				knobTranslateX.value,
-				knobTranslateX.value - KNOB_SIZE * 1.5 * trailIndex,
+				knobTranslateX.value - KNOB_SIZE * 1.25 * trailIndex,
 				knobTranslateX.value,
 			]
 		);
