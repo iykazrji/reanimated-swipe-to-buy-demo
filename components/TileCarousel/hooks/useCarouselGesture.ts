@@ -49,32 +49,42 @@ export const useCarouselGesture = ({
 				damping: 10,
 				mass: 1,
 			});
-			runOnJS(setPauseSlider)(true);
+			if (!pauseSlider) {
+				runOnJS(setPauseSlider)(true);
+			}
 		})
 		.onEnd((e) => {
 			const dragProgress = -e.translationX / fullItemWidth;
-			const newIndex = Math.round(activeIndex.value + dragProgress);
+			const totalItems = data.length;
+			let newIndex = Math.round(activeIndex.value + dragProgress);
 
-			if (newIndex < activeIndex.value) {
-				slideDirection.value = -1;
-			} else {
-				slideDirection.value = 1;
-			}
+			// if (newIndex < activeIndex.value) {
+			// 	slideDirection.value = -1;
+			// } else {
+			// 	slideDirection.value = 1;
+			// }
 
-			activeIndex.value = Math.max(
-				0,
-				Math.min(data.length - 1, newIndex)
-			);
-			offsetX.value = withSpring(activeIndex.value, {
+			// Only normalize the activeIndex, let offsetX continue indefinitely
+			const normalizedIndex = (newIndex + totalItems) % totalItems;
+
+			activeIndex.value = normalizedIndex;
+
+			offsetX.value = withSpring(newIndex, {
 				stiffness: 100,
 				damping: 100,
 				mass: 1,
 			});
-			runOnJS(setPauseSlider)(false);
+
+			if (pauseSlider) {
+				runOnJS(setPauseSlider)(false);
+			}
 		});
 
 	const scrollToIndex = (index: number) => {
-		activeIndex.value = index;
+		const totalItems = data.length;
+		const normalizedIndex = (index + totalItems) % totalItems;
+		activeIndex.value = normalizedIndex;
+		// Don't normalize offsetX to allow continuous scrolling
 		offsetX.value = withSpring(index, {
 			stiffness: 50,
 			damping: 200,

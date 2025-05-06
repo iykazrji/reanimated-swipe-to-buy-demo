@@ -1,4 +1,3 @@
-import { Platform } from "react-native";
 import {
 	useAnimatedStyle,
 	interpolate,
@@ -8,8 +7,7 @@ import {
 	Easing,
 } from "react-native-reanimated";
 import { SharedValue } from "react-native-reanimated";
-
-const IS_IOS = Platform.OS === "ios";
+import { TOTAL_ITEMS } from "../config";
 
 interface UseCarouselItemAnimationProps {
 	index: number;
@@ -31,15 +29,22 @@ export const useCarouselItemAnimation = ({
 	const fullItemWidth = itemWidth + itemSpacing;
 
 	const animatedStyle = useAnimatedStyle(() => {
-		const offset = index - offsetX.value;
-		const isActive = offset === 0;
-		const absoluteOffset = Math.abs(offset);
+		// Calculate the visual position based on the continuous offset
+		const visualPosition = offsetX.value % TOTAL_ITEMS;
+		const itemVisualOffset =
+			(index - visualPosition + TOTAL_ITEMS) % TOTAL_ITEMS;
+		const normalizedOffset =
+			itemVisualOffset > TOTAL_ITEMS / 2
+				? itemVisualOffset - TOTAL_ITEMS
+				: itemVisualOffset;
+		const absoluteOffset = Math.abs(normalizedOffset);
 
 		const forwardTranslateX = withSpring(
 			interpolate(
-				offset,
-				[-2, -1, -0.5, -0.25, 0, 0.25, 0.5, 1, 2],
+				normalizedOffset,
+				[-3, -2, -1, -0.5, -0.25, 0, 0.25, 0.5, 1, 2, 3],
 				[
+					-fullItemWidth * 0.5,
 					-fullItemWidth * 0.6,
 					-fullItemWidth * 0.35,
 					-fullItemWidth * 0.35,
@@ -49,29 +54,7 @@ export const useCarouselItemAnimation = ({
 					fullItemWidth * 0.25,
 					fullItemWidth * 0.4,
 					fullItemWidth * 0.6,
-				],
-				Extrapolation.CLAMP
-			),
-			{
-				mass: 1,
-				damping: 100,
-				stiffness: 300,
-			}
-		);
-		const backwardTranslateX = withSpring(
-			interpolate(
-				offset,
-				[-2, -1, -0.5, -0.25, 0, 0.25, 0.5, 1, 2],
-				[
-					-fullItemWidth * 0.6,
-					-fullItemWidth * 0.35,
-					-fullItemWidth * 0.25,
-					-fullItemWidth * 0.1,
-					0,
-					fullItemWidth * 0.4,
-					fullItemWidth * 0.35,
-					fullItemWidth * 0.35,
-					fullItemWidth * 0.6,
+					fullItemWidth * 0.5,
 				],
 				Extrapolation.CLAMP
 			),
@@ -82,17 +65,8 @@ export const useCarouselItemAnimation = ({
 			}
 		);
 
-		const translateX =
-			slideDirection.value === 1 ? forwardTranslateX : backwardTranslateX;
+		const translateX = forwardTranslateX;
 
-		const zIndex = Math.round(
-			interpolate(
-				absoluteOffset,
-				[0, 1, 2],
-				[100, 10, 1],
-				Extrapolation.CLAMP
-			)
-		);
 		const opacity = withTiming(
 			interpolate(
 				absoluteOffset,
@@ -113,19 +87,27 @@ export const useCarouselItemAnimation = ({
 	});
 
 	const rotationStyle = useAnimatedStyle(() => {
-		const offset = index - offsetX.value;
+		// Calculate the visual position based on the continuous offset
+		const visualPosition = offsetX.value % TOTAL_ITEMS;
+		const itemVisualOffset =
+			(index - visualPosition + TOTAL_ITEMS) % TOTAL_ITEMS;
+		const normalizedOffset =
+			itemVisualOffset > TOTAL_ITEMS / 2
+				? itemVisualOffset - TOTAL_ITEMS
+				: itemVisualOffset;
+
 		const rotateY = interpolate(
-			offset,
-			[-2, -1, -0.5, -0.25, 0, 0.25, 0.5, 1, 2],
-			[30, 30, 40, 35, 0, -25, -30, -30, -30],
+			normalizedOffset,
+			[-3, -2, -1, -0.5, -0.25, 0, 0.25, 0.5, 1, 2, 3],
+			[30, 30, 30, 40, 35, 0, -25, -30, -30, -30, -30],
 			Extrapolation.CLAMP
 		);
 
 		const scale = withSpring(
 			interpolate(
-				offset,
-				[-2, -1, -0.5, -0.25, 0, 0.25, 0.5, 1, 2],
-				[0.65, 0.75, 0.8, 0.9, 1, 0.9, 0.8, 0.75, 0.65],
+				normalizedOffset,
+				[-3, -2, -1, -0.5, -0.25, 0, 0.25, 0.5, 1, 2, 3],
+				[0.65, 0.65, 0.75, 0.8, 0.9, 1, 0.9, 0.8, 0.75, 0.65, 0.65],
 				Extrapolation.CLAMP
 			),
 			{

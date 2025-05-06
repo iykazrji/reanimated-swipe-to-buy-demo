@@ -1,12 +1,14 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Dimensions, Image } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { StyleSheet, Dimensions } from "react-native";
 import Animated, {
 	SharedValue,
 	LinearTransition,
 	useSharedValue,
 	useAnimatedReaction,
 	runOnJS,
+	useAnimatedStyle,
 } from "react-native-reanimated";
+
 import { useCarouselItemAnimation } from "../hooks/useCarouselItemAnimation";
 import { useImageAnimation } from "../hooks/useImageAnimation";
 
@@ -41,7 +43,6 @@ export const CarouselItem: React.FC<CarouselItemProps> = ({
 	activeIndex,
 }) => {
 	const imageOpacity = useSharedValue(0);
-
 	const { animatedStyle, rotationStyle } = useCarouselItemAnimation({
 		index,
 		itemWidth,
@@ -51,31 +52,27 @@ export const CarouselItem: React.FC<CarouselItemProps> = ({
 		slideDirection,
 	});
 
-	const [currentOffset, setCurrentOffset] = useState(0);
-
 	const imageAnimatedStyle = useImageAnimation({ imageOpacity });
 
 	const tileLayoutTransition = LinearTransition.springify()
 		.damping(10)
 		.stiffness(100);
 
-	useAnimatedReaction(
-		() => offsetX.value,
-		(activeIndex, prevActiveIndex) => {
-			if (activeIndex !== prevActiveIndex) {
-				runOnJS(setCurrentOffset)(
-					Math.round(Math.abs(index - activeIndex))
-				);
-			}
-		}
-	);
+	const zIndexAnimatedStyle = useAnimatedStyle(() => {
+		const totalItems = 7; // This should match the number of items in your data array
+		const currentActiveIndex = offsetX.value % totalItems;
+		const distance = Math.abs(index - currentActiveIndex);
 
-	const derivedZIndex = useMemo(() => {
-		if (currentOffset === 0) return 100;
-		if (currentOffset === 1) return 10;
-		if (currentOffset === 2) return 1;
-		return 0;
-	}, [currentOffset]);
+		const normalizedDistance = Math.min(distance, totalItems - distance);
+
+		let zIndex = 0;
+		if (normalizedDistance < 0.65) zIndex = 100;
+		else if (normalizedDistance < 1.65) zIndex = 10;
+		else if (normalizedDistance < 2.65) zIndex = 1;
+		return {
+			zIndex: zIndex,
+		};
+	});
 
 	return (
 		<Animated.View
@@ -87,8 +84,8 @@ export const CarouselItem: React.FC<CarouselItemProps> = ({
 					height: itemWidth,
 					justifyContent: "center",
 					alignItems: "center",
-					zIndex: derivedZIndex,
 				},
+				zIndexAnimatedStyle,
 				animatedStyle,
 			]}
 			renderToHardwareTextureAndroid

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useSharedValue, runOnJS } from "react-native-reanimated";
+import { useSharedValue, runOnJS, withSpring } from "react-native-reanimated";
 import { CarouselItemData } from "../components/TileCarouselItem";
 import { TIMER_INTERVAL } from "../config";
 
@@ -10,6 +10,7 @@ interface UseCarouselTimerProps {
 	setPauseSlider: (value: boolean) => void;
 	scrollToIndex: (index: number) => void;
 	data: CarouselItemData[];
+	offsetX: { value: number };
 	onCarouselChangeEvent: ({
 		index,
 		direction,
@@ -28,6 +29,7 @@ export const useCarouselTimer = ({
 	setPauseSlider,
 	scrollToIndex,
 	data,
+	offsetX,
 	onCarouselChangeEvent,
 }: UseCarouselTimerProps) => {
 	const timer = useSharedValue<number | null>(null);
@@ -44,17 +46,17 @@ export const useCarouselTimer = ({
 		return setInterval(() => {
 			"worklet";
 			if (pauseSlider) return;
-			let nextIndex = activeIndex.value + slideDirection.value;
+			const totalItems = data.length;
+			let nextIndex = offsetX.value + slideDirection.value;
+			const normalizedIndex = (nextIndex + totalItems) % totalItems;
 
-			if (nextIndex >= data.length) {
-				slideDirection.value = -1;
-				nextIndex = data.length - 2;
-			} else if (nextIndex < 0) {
-				slideDirection.value = 1;
-				nextIndex = 1;
-			}
-
-			scrollToIndex(nextIndex);
+			// Update activeIndex with normalized value but keep offsetX continuous
+			activeIndex.value = normalizedIndex;
+			offsetX.value = withSpring(nextIndex, {
+				stiffness: 50,
+				damping: 200,
+				mass: 1,
+			});
 		}, TIMER_INTERVAL);
 	};
 

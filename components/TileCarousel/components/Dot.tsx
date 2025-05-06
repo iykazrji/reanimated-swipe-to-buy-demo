@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
 		borderRadius: DOT_SIZE / 2,
 		backgroundColor: "rgba(25, 25, 25, 0.25)",
 		marginHorizontal: DOT_SPACING,
+		overflow: "visible",
 	},
 	dotInner: {
 		width: DOT_SIZE,

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Dimensions, StyleSheet } from "react-native";
 import Animated, {
 	runOnJS,
@@ -40,14 +40,6 @@ export function TileCarousel({ data, onCarouselChangeEvent }: Carousel3DProps) {
 		onCarouselChangeEvent,
 	});
 
-	const clonedData = useMemo(() => {
-		const clonedData = [...data, ...data];
-		if (activeIndex.value % data.length === 0) {
-			clonedData.push(...data);
-		}
-		return clonedData;
-	}, []);
-
 	useCarouselTimer({
 		activeIndex,
 		slideDirection,
@@ -55,6 +47,7 @@ export function TileCarousel({ data, onCarouselChangeEvent }: Carousel3DProps) {
 		setPauseSlider,
 		scrollToIndex,
 		data,
+		offsetX,
 		onCarouselChangeEvent,
 	});
 
@@ -64,7 +57,7 @@ export function TileCarousel({ data, onCarouselChangeEvent }: Carousel3DProps) {
 				{data.map((item, index) => {
 					return (
 						<CarouselItem
-							key={`${item.id}-${index}`}
+							key={`${index}-${item.id}`}
 							index={index}
 							activeIndex={activeIndex}
 							itemWidth={ITEM_WIDTH}

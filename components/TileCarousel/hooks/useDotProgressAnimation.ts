@@ -36,7 +36,7 @@ export const useDotProgressAnimation = ({
 			withTiming(DOT_SIZE, {
 				duration: 0,
 			}),
-			withTiming(isActive ? DOT_SIZE * 4 : DOT_SIZE, {
+			withTiming(isActive ? DOT_SIZE * 5.5 : DOT_SIZE, {
 				duration: isActive ? TIMER_INTERVAL : 0,
 			})
 		);
